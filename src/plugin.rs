@@ -133,7 +133,6 @@ fn svg_mesh_linker(
                     }
                     #[cfg(feature = "3d")]
                     {
-
                         if let Some(mut mesh) = mesh_3d {
                             mesh.0 = svg.mesh.clone();
                         }
@@ -160,10 +159,12 @@ fn svg_mesh_linker(
                         svg.name
                     );
                     #[cfg(feature = "2d")]
-                    if let Some(mut mesh) = mesh_2d.filter(|mesh| mesh.0 != svg.mesh) {
-                        let old_mesh = mesh.0.clone();
-                        mesh.0 = svg.mesh.clone();
-                        meshes.remove(&old_mesh);
+                    {
+                        if let Some(mut mesh) = mesh_2d.filter(|mesh| mesh.0 != svg.mesh) {
+                            let old_mesh = mesh.0.clone();
+                            mesh.0 = svg.mesh.clone();
+                            meshes.remove(&old_mesh);
+                        }
                     }
                     #[cfg(feature = "3d")]
                     if let Some(mut mesh) = mesh_3d.filter(|mesh| mesh.0 != svg.mesh) {
@@ -191,7 +192,9 @@ fn svg_mesh_linker(
 
     // Ensure all correct meshes are set for entities which have had modified handles
     for entity in changed_handles.iter() {
-        let Ok((.., svg_2d, svg_3d, mesh_2d, mesh_3d)) = query.get_mut(entity) else {
+        let Ok((.., material_2d, material_3d, svg_2d, svg_3d, mesh_2d, mesh_3d)) =
+            query.get_mut(entity)
+        else {
             continue;
         };
         let Some(handle) = svg_2d.map_or_else(|| svg_3d.map(|x| &x.0), |x| Some(&x.0)) else {
@@ -205,12 +208,26 @@ fn svg_mesh_linker(
             entity
         );
         #[cfg(feature = "2d")]
-        if let Some(mut mesh) = mesh_2d {
-            mesh.0 = svg.mesh.clone();
+        {
+            if let Some(mut mesh) = mesh_2d {
+                mesh.0 = svg.mesh.clone();
+            }
+
+            if let (Some(svg_2d), Some(mut material_2d)) = (svg_2d, material_2d) {
+                let handle = svg_2d.0.clone();
+                material_2d.0 = handle;
+            }
         }
         #[cfg(feature = "3d")]
-        if let Some(mut mesh) = mesh_3d {
-            mesh.0 = svg.mesh.clone();
+        {
+            if let Some(mut mesh) = mesh_3d {
+                mesh.0 = svg.mesh.clone();
+            }
+
+            if let (Some(svg_3d), Some(mut material_3d)) = (svg_3d, material_3d) {
+                let handle = svg_3d.0.clone();
+                material_3d.0 = handle;
+            }
         }
     }
 }

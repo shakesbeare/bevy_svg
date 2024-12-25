@@ -167,9 +167,8 @@ fn svg_mesh_linker(
                             meshes.remove(&old_mesh);
                         }
 
-                        if let (Some(svg_2d), Some(mut material_2d)) = (svg_2d, material_2d) {
-                            let handle = svg_2d.0.clone();
-                            material_2d.0 = handle;
+                        if let Some(mut material_2d) = material_2d {
+                            *material_2d = MeshMaterial2d(bevy::asset::Handle::Weak(*id));
                         }
                     }
                     #[cfg(feature = "3d")]
@@ -180,9 +179,8 @@ fn svg_mesh_linker(
                             meshes.remove(&old_mesh);
                         }
 
-                        if let (Some(svg_3d), Some(mut material_3d)) = (svg_3d, material_3d) {
-                            let handle = svg_3d.0.clone();
-                            material_3d.0 = handle;
+                        if let Some(mut material_3d) = material_3d {
+                            *material_3d = MeshMaterial3d(bevy::asset::Handle::Weak(*id));
                         }
                     }
                 }

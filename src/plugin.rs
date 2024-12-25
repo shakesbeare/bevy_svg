@@ -146,7 +146,7 @@ fn svg_mesh_linker(
                 }
             }
             AssetEvent::Modified { id } => {
-                for (.., mesh_2d, mesh_3d) in
+                for (.., material_2d, material_3d, svg_2d, svg_3d, mesh_2d, mesh_3d) in
                     query.iter_mut().filter(|(_, _, _, svg_2d, svg_3d, ..)| {
                         svg_2d
                             .map(|x| x.0.id() == *id)
@@ -160,16 +160,30 @@ fn svg_mesh_linker(
                         svg.name
                     );
                     #[cfg(feature = "2d")]
-                    if let Some(mut mesh) = mesh_2d.filter(|mesh| mesh.0 != svg.mesh) {
-                        let old_mesh = mesh.0.clone();
-                        mesh.0 = svg.mesh.clone();
-                        meshes.remove(&old_mesh);
+                    {
+                        if let Some(mut mesh) = mesh_2d.filter(|mesh| mesh.0 != svg.mesh) {
+                            let old_mesh = mesh.0.clone();
+                            mesh.0 = svg.mesh.clone();
+                            meshes.remove(&old_mesh);
+                        }
+
+                        if let (Some(svg_2d), Some(mut material_2d)) = (svg_2d, material_2d) {
+                            let handle = svg_2d.0.clone();
+                            material_2d.0 = handle;
+                        }
                     }
                     #[cfg(feature = "3d")]
-                    if let Some(mut mesh) = mesh_3d.filter(|mesh| mesh.0 != svg.mesh) {
-                        let old_mesh = mesh.clone();
-                        mesh.0 = svg.mesh.clone();
-                        meshes.remove(&old_mesh);
+                    {
+                        if let Some(mut mesh) = mesh_3d.filter(|mesh| mesh.0 != svg.mesh) {
+                            let old_mesh = mesh.clone();
+                            mesh.0 = svg.mesh.clone();
+                            meshes.remove(&old_mesh);
+                        }
+
+                        if let (Some(svg_3d), Some(mut material_3d)) = (svg_3d, material_3d) {
+                            let handle = svg_3d.0.clone();
+                            material_3d.0 = handle;
+                        }
                     }
                 }
             }
